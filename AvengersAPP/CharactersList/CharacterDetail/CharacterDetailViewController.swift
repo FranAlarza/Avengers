@@ -26,6 +26,7 @@ class CharacterDetailViewController: UIViewController {
         characterImage.image = UIImage(named: characterImageDetail ?? "placeholder")
         characterHeroName.text = characterHeroDetail
         characterName.text = characterNameDetail
+        actorName.text = actorNameDetail
     }
     
 

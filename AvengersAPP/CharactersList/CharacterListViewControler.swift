@@ -39,8 +39,11 @@ class CharacterListViewControler: UICollectionViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "CharacterDetailSegue" {
             let destination = segue.destination as? CharacterDetailViewController
-            let characterName = sender as? String
-            destination?.characterNameDetail = characterName
+            guard let indexPath = sender as? IndexPath else { return }
+            destination?.characterImageDetail = characters[indexPath.row]["characterImage"] ?? ""
+            destination?.characterHeroDetail = characters[indexPath.row]["characterHeroName"] ?? ""
+            destination?.characterNameDetail = characters[indexPath.row]["characterName"] ?? ""
+            destination?.actorNameDetail = characters[indexPath.row]["actorName"] ?? ""
         }
     }
     
@@ -59,8 +62,7 @@ class CharacterListViewControler: UICollectionViewController {
     }
     
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let names = characters[indexPath.row]["characterHeroName"]
-        performSegue(withIdentifier: "CharacterDetailSegue", sender: names)
+        performSegue(withIdentifier: "CharacterDetailSegue", sender: indexPath)
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
