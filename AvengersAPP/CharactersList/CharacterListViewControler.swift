@@ -9,8 +9,12 @@ import UIKit
 
 private let reuseIdentifier = "Cell"
 
-class CharacterListViewControler: UICollectionViewController {
+class CharacterListViewControler: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
+    
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
+    @IBOutlet weak var collectionCharacters: UICollectionView!
+    var refreshControl = UIRefreshControl()
     let names = ["Iron Man", "Green Linter", "Spiderman", "Hulk"]
     
     private var characters = [["characterHeroName": "Ant-Man", "characterName": "Scott Lang", "actorName": "Paul Rudd",                            "characterImage": "antmanCharacter"],
@@ -32,6 +36,38 @@ class CharacterListViewControler: UICollectionViewController {
                               ["characterHeroName": "Rocket", "characterName": "Rocket Racoon", "actorName": "Bradley Cooper", "characterImage": "rocketCharacter"],
                               ["characterHeroName": "Thanos", "characterName": "Thanos", "actorName": "Josh Brolin", "characterImage": "thanos2Character"]]
     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        activityIndicator.startAnimating()
+        collectionCharacters.alpha = 0.25
+        collectionCharacters.isUserInteractionEnabled = false
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2){
+            self.activityIndicator.stopAnimating()
+            self.collectionCharacters.alpha = 1
+            self.collectionCharacters.isUserInteractionEnabled = true
+        }
+    }
+    
+    private func configRefreshControl() {
+        refreshControl.addTarget(self, action: #selector(refreshControlAction), for: .valueChanged)
+        collectionCharacters.refreshControl = refreshControl
+    }
+    
+    @objc func refreshControlAction(){
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            self.refreshControl.endRefreshing()
+        }
+    }
+    
     
     // MARK: - Navigation
     
@@ -50,22 +86,22 @@ class CharacterListViewControler: UICollectionViewController {
     
     // MARK: UICollectionViewDataSource
     
-    override func numberOfSections(in collectionView: UICollectionView) -> Int {
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
         // #warning Incomplete implementation, return the number of sections
         return 1
     }
     
     
-    override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of items
         return characters.count
     }
     
-    override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         performSegue(withIdentifier: "CharacterDetailSegue", sender: indexPath)
     }
     
-    override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as? CharacterCell else {
             return UICollectionViewCell()
         }

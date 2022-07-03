@@ -7,11 +7,11 @@
 
 import UIKit
 
-class MoviesTableViewController: UITableViewController {
-
-    // MARK: - Table view data source
+class MoviesTableViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
-    private var movies = [["movieName": "Captain America: The First Avenger","movieReleaseYear": "2011",                                    "movieImageName": "captainAmerica", "cast": ["Chris Evans","Hugo Weaving", "Samuel L.                           Jackson"]],
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
+    @IBOutlet weak var tableView: UITableView!
+    private var movies = [["movieName": "Captain America: The First Avenger","movieReleaseYear": "2011",                                    "movieImageName": "captainAmerica", "cast": ["Chris Evans","Hugo Weaving",          "Samuel L. Jackson"]],
                           ["movieName": "Captain Marvel","movieReleaseYear": "2019", "movieImageName": "captainMarvel", "cast": ["Brie Larson","Ben Mendelsohn", "Samuel L. Jackson"]],
                           ["movieName": "Iron man", "movieReleaseYear":"2008", "movieImageName": "iroman", "cast": ["Robert Downey Jr.", "Gwyneth Paltrow","Terrence Howard"]],
                           ["movieName": "The Incredible Hulk", "movieReleaseYear": "2008","movieImageName": "hulk", "cast": ["Edward Norton", "Liv Tayler", "Tim Roth"]],
@@ -34,35 +34,39 @@ class MoviesTableViewController: UITableViewController {
                           ["movieName": "Avengers: Infinity War", "movieReleaseYear": "2018", "movieImageName":"avengersInfinityWar", "cast": ["Chris Hemsworth", "Robert Downey Jr.", "Mark Ruffalo"]],
                           ["movieName": "Avengers: Endgame", "movieReleaseYear": "2019", "movieImageName":"avengersEndgame", "cast": ["Chris Hemsworth", "Robert Downey Jr.", "Mark Ruffalo"]],
                           ["movieName": "Spider-Man: Far from Home", "movieReleaseYear": "2019","movieImageName": "spidermanWayFromHome", "cast": ["Tom Holland", "Samuel L.Jackson", "Jake Gyllenhaal"]]]
-
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
-        return 1
-    }
-
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
-        return movies.count
-    }
-
     
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "movieCell", for: indexPath) as? MoviesCell else { return
-            UITableViewCell()
-        }
-
-        if let movieImage = movies[indexPath.row]["movieImageName"] as? String,
-           let movieName = movies[indexPath.row]["movieName"] as? String,
-           let movieYear = movies[indexPath.row]["movieReleaseYear"] as? String{
-            cell.setDataMovieCell(image: movieImage, title: movieName, year: movieYear)
-        }
-        return cell
+    private var refreshControl = UIRefreshControl()
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        configRefreshControl()
+        activityIndicator.startAnimating()
+        tableView.alpha = 0.25
+        tableView.isUserInteractionEnabled = false
     }
     
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        performSegue(withIdentifier: "MovieDetailSegue", sender: indexPath)
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            self.activityIndicator.stopAnimating()
+            self.tableView.isUserInteractionEnabled = true
+            self.tableView.alpha = 1
+        }
     }
-
+    
+    private func configRefreshControl() {
+        refreshControl.addTarget(self, action: #selector(refreshControlAction), for: .valueChanged)
+        tableView.refreshControl = refreshControl
+    }
+    
+    @objc private func refreshControlAction() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            self.refreshControl.endRefreshing()
+        }
+    }
+    
+    
     
     // MARK: - Navigation
 
@@ -76,5 +80,36 @@ class MoviesTableViewController: UITableViewController {
         destinationVC?.cast = movies[indexPath.row]["cast"] as? [String]
     }
     
+    // MARK: - Table view data source
+
+    func numberOfSections(in tableView: UITableView) -> Int {
+        // #warning Incomplete implementation, return the number of sections
+        return 1
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        // #warning Incomplete implementation, return the number of rows
+        return movies.count
+    }
+
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "movieCell", for: indexPath) as? MoviesCell else { return
+            UITableViewCell()
+        }
+
+        if let movieImage = movies[indexPath.row]["movieImageName"] as? String,
+           let movieName = movies[indexPath.row]["movieName"] as? String,
+           let movieYear = movies[indexPath.row]["movieReleaseYear"] as? String{
+            cell.setDataMovieCell(image: movieImage, title: movieName, year: movieYear)
+        }
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        performSegue(withIdentifier: "MovieDetailSegue", sender: indexPath)
+    }
 
 }
+
+
